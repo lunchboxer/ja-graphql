@@ -37,6 +37,7 @@ type Mutation {
     endDate: String!
   ): SchoolYear
   deleteSchoolYear(id: ID!): SchoolYear
+  createGroup(name: String!, grade: String!, schoolYearId: ID!): Group
 }
 
 type Query {

@@ -7,21 +7,24 @@ const isAuthenticatedUser = rule()((root, parameters, context) => {
   const userId = getUserId(context)
   return Boolean(userId)
 })
-const isAdmin = rule()((root, parameters, context) => {
+// this needs to be tested
+const isAdmin = rule()(async (root, parameters, context) => {
   const userId = getUserId(context)
-  return context.prisma.$exists.user({ id: userId, role: 'admin' })
+  const adminUser = await context.prisma.user.findUnique({
+    where: { id: userId, role: 'admin' },
+  })
+  return !!adminUser
 })
 const isThisUser = rule()((root, parameters, context) => {
   const userId = getUserId(context)
   return userId === context.id
 })
 const noUsersExist = rule()(async (root, parameters, context) => {
-  const users = await context.prisma.$exists.user()
+  const users = await context.prisma.user.findFirst()
   return !users
 })
 
 // Permissions
-
 module.exports.permissions = shield(
   {
     Query: {

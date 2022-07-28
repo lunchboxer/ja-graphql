@@ -7,7 +7,7 @@ module.exports.Group = {
     return context.prisma.group.findUnique({ where: { id } }).teachers()
   },
 
-  schoolyear({ id }, _, context) {
+  schoolYear({ id }, _, context) {
     return context.prisma.group.findUnique({ where: { id } }).schoolYear()
   },
 }

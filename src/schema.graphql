@@ -45,6 +45,8 @@ type Query {
   students: [Student]
   group(id: ID!): Group
   groups: [Group]
+  guardian(id: ID!): Guardian
+  guardians: [Guardian]
   user(id: ID!): User
   users: [User]
   schoolYear(id: ID): SchoolYear

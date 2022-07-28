@@ -1,0 +1,121 @@
+scalar Date
+
+type AuthPayload {
+  token: String
+  user: User
+}
+
+type Mutation {
+  # createStudent(birthdate: String, languages: String, name: String): Student
+  # deleteStudent(id: ID!): Student
+  # updateStudent(
+  #   id: ID!
+  #   name: String
+  #   birthdate: String
+  #   languages: String
+  # ): Student
+  createUser(
+    username: String!
+    name: String
+    email: String
+    password: String!
+  ): AuthPayload
+  # deleteUser(id: ID!): User
+  login(username: String!, password: String!): AuthPayload
+  # updateUser(email: String, id: ID!, name: String): User
+  # changePassword(newPassword: String!, oldPassword: String!): User
+  updateSchool(name: String, address: String): School
+  createSchoolYear(
+    name: String!
+    startDate: String!
+    endDate: String!
+  ): SchoolYear
+  updateSchoolYear(
+    id: ID!
+    name: String!
+    startDate: String!
+    endDate: String!
+  ): SchoolYear
+  deleteSchoolYear(id: ID!): SchoolYear
+}
+
+type Query {
+  me: User
+  #  student(id: ID): Student
+  #  students: [Student]
+  user(id: ID!): User
+  users: [User]
+  schoolYear(id: ID): SchoolYear
+  schoolYears: [SchoolYear]
+  school: School
+}
+
+type Student {
+  id: ID
+  commonname: String
+  birthdate: String
+  languages: String
+  idname: String
+  username: String
+  chinesename: String
+  englishname: String
+  gender: String
+  nationality: String
+  groups: [Group!]!
+  gaurdians: [Guardian!]!
+  createdAt: Date
+  updatedAt: Date
+}
+
+type Guardian {
+  id: String
+  relationship: String
+  name: String
+  phone: String
+  nationality: String
+  email: String
+  students: [Student!]!
+  createdAt: Date
+  updatedAt: Date
+}
+
+type User {
+  id: ID
+  username: String
+  email: String
+  isVerified: Boolean
+  role: String
+  name: String
+  groups: [Group!]!
+  createdAt: Date
+  updatedAt: Date
+}
+
+type SchoolYear {
+  id: ID
+  name: String
+  # YYYY-MM-DD
+  startDate: String
+  endDate: String
+  groups: [Group!]!
+  createdAt: Date
+  updatedAt: Date
+}
+
+type Group {
+  id: ID
+  name: String
+  grade: String
+  teachers: [User!]!
+  students: [Student!]!
+  schoolYear: SchoolYear
+  createdAt: Date
+  updatedAt: Date
+}
+
+type School {
+  name: String
+  address: String
+  createdAt: Date
+  updatedAt: Date
+}

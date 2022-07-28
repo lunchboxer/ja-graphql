@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  username   String   @unique
+  name       String?
+  password   String
+  role       String   @default("teacher")
+  isVerified Boolean  @default(false)
+  groups     Group[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  student    Student?
+}
+
+model Student {
+  id          String     @id @default(cuid())
+  commonname  String // unique in current group, resolver enforced
+  password    String?
+  idname      String?
+  username    String?    @unique
+  chinesename String?
+  englishname String?
+  birthdate   String?
+  languages   String?
+  gender      String?
+  nationality String?
+  groups      Group[]
+  user        User?      @relation(fields: [userId], references: [id])
+  userId      String?    @unique
+  guardians   Guardian[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Guardian {
+  id           String    @id @default(cuid())
+  relationship String
+  name         String
+  phone        String?
+  nationality  String?
+  email        String?
+  students     Student[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Group {
+  id           String     @id @default(cuid())
+  name         String
+  grade        String
+  teachers     User[]
+  students     Student[]
+  schoolYear   SchoolYear @relation(fields: [schoolYearId], references: [id])
+  schoolYearId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model SchoolYear {
+  id        String   @id @default(cuid())
+  name      String
+  startDate String
+  endDate   String
+  groups    Group[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Only one of these per deployment
+model School {
+  id        Int      @id @default(1)
+  name      String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -39,4 +39,34 @@ module.exports.Query = {
       orderBy: { startDate: 'desc' },
     })
   },
+
+  group: async (_, { id }, context) => {
+    return context.prisma.group.findUnique({ where: { id } })
+  },
+
+  groups: async (_, parameters, context) => {
+    return context.prisma.group.findMany({
+      orderBy: { updatedAt: 'desc' },
+    })
+  },
+
+  student: async (_, { id }, context) => {
+    return context.prisma.student.findUnique({ where: { id } })
+  },
+
+  students: async (_, parameters, context) => {
+    return context.prisma.student.findMany({
+      orderBy: { commonName: 'asc' },
+    })
+  },
+
+  guardian: async (_, { id }, context) => {
+    return context.prisma.guardian.findUnique({ where: { id } })
+  },
+
+  guardians: async (_, parameters, context) => {
+    return context.prisma.guardian.findMany({
+      orderBy: { name: 'asc' },
+    })
+  },
 }

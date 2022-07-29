@@ -1,4 +1,4 @@
-import express from 'express'
+import fastify from 'fastify'
 import { applyMiddleware } from 'graphql-middleware'
 import {
   getGraphQLParameters,
@@ -29,43 +29,57 @@ const schemaWithPermissions = applyMiddleware(
   permissions.generate(schema),
 )
 
-const app = express()
-app.use(express.json())
+const development = process.env.NODE_ENV === 'development'
+const app = fastify({
+  logger: {
+    transport: development
+      ? {
+          target: 'pino-pretty',
+          options: {
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname',
+          },
+        }
+      : undefined,
+  },
+})
 
-app.use('/graphql', async (expressRequest, expressResult) => {
-  // Determine whether we should render GraphiQL instead of returning an API response
-  const request = {
-    body: expressRequest.body,
-    headers: expressRequest.headers,
-    method: expressRequest.method,
-    query: expressRequest.query,
-  }
-  if (shouldRenderGraphiQL(request)) {
-    expressResult.send(renderGraphiQL())
-  } else {
-    // Extract the Graphql parameters from the request
-    const { operationName, query, variables } = getGraphQLParameters(request)
+app.route({
+  method: ['GET', 'POST'],
+  url: '/graphql',
+  async handler(originalRequest, originalResult) {
+    // Determine whether we should render GraphiQL instead of returning an API response
+    const request = {
+      body: originalRequest.body,
+      headers: originalRequest.headers,
+      method: originalRequest.method,
+      query: originalRequest.query,
+    }
+    if (shouldRenderGraphiQL(request)) {
+      originalResult.send(renderGraphiQL())
+    } else {
+      // Extract the Graphql parameters from the request
+      const { operationName, query, variables } = getGraphQLParameters(request)
 
-    // Validate and execute the query
-    const result = await processRequest({
-      operationName,
-      query,
-      variables,
-      request,
-      schema: schemaWithPermissions,
-      contextFactory: async () => ({
+      // Validate and execute the query
+      const result = await processRequest({
+        operationName,
+        query,
+        variables,
         request,
-        prisma,
-        user: await getUser(request, prisma),
-      }),
-    })
+        schema: schemaWithPermissions,
+        contextFactory: async () => ({
+          request,
+          prisma,
+          user: await getUser(request, prisma),
+        }),
+      })
 
-    sendResult(result, expressResult)
-  }
+      sendResult(result, originalResult)
+    }
+  },
 })
 
 const port = process.env.PORT || 4000
 
-app.listen(port, () => {
-  console.log(`GraphQL server is running on port ${port}.`)
-})
+app.listen({ port })

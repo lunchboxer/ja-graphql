@@ -56,7 +56,8 @@ app.route({
       query: originalRequest.query,
     }
     if (shouldRenderGraphiQL(request)) {
-      originalResult.send(renderGraphiQL())
+      originalResult.type('text/html')
+      originalResult.send(renderGraphiQL({}))
     } else {
       // Extract the Graphql parameters from the request
       const { operationName, query, variables } = getGraphQLParameters(request)
@@ -75,7 +76,7 @@ app.route({
         }),
       })
 
-      sendResult(result, originalResult)
+      sendResult(result, originalResult.raw)
     }
   },
 })

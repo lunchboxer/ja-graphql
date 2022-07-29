@@ -1,4 +1,4 @@
-module.exports.Student = {
+export const Student = {
   groups({ id }, _, context) {
     return context.prisma.student.findUnique({ where: { id } }).groups()
   },

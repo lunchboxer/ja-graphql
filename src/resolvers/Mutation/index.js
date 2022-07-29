@@ -1,8 +1,8 @@
-const { auth } = require('./auth')
-const { school } = require('./school')
-const { schoolYear } = require('./schoolYear')
+import { auth } from './auth.js'
+import { school } from './school.js'
+import { schoolYear } from './schoolYear.js'
 
-module.exports.Mutation = {
+export const Mutation = {
   ...auth,
   ...school,
   ...schoolYear,

@@ -1,4 +1,4 @@
-module.exports.school = {
+export const school = {
   updateSchool: async (_, parameters, context) => {
     // if the school record exists, patch it
     // if the school record doesn't exist, create it.

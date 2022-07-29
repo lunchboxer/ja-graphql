@@ -24,7 +24,7 @@ module.exports = {
   ],
   rules: {
     'unicorn/filename-case': 0,
-    'unicorn/prefer-module': 0,
+    // 'unicorn/prefer-module': ['error', 'always'],
     'unicorn/numeric-separators-style': [
       'error',
       { onlyIfContainsSeparator: true },

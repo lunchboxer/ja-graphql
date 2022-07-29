@@ -1,7 +1,6 @@
-// const { hash, compare } = require('bcrypt')
-const { scryptSync, randomBytes } = require('node:crypto')
-const { sign } = require('jsonwebtoken')
-const { isValidEmail } = require('../../utils')
+import { scryptSync, randomBytes } from 'node:crypto'
+import jwt from 'jsonwebtoken'
+import { isValidEmail } from '../../utils.js'
 
 const encryptPassword = (password, salt) => {
   return scryptSync(password, salt, 32).toString('hex')
@@ -17,7 +16,7 @@ const passwordMatches = (password, hash) => {
   return originalPassHash === currentPassHash
 }
 
-module.exports.auth = {
+export const auth = {
   createUser: async (_, parameters, context) => {
     if (parameters.email && !isValidEmail(parameters.email)) {
       throw new Error('email address not valid')
@@ -28,7 +27,7 @@ module.exports.auth = {
       data: { ...parameters, password: hashedPassword },
     })
     return {
-      token: sign({ userId: user.id }, process.env.JWT_SECRET),
+      token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET),
       user,
     }
   },
@@ -46,7 +45,7 @@ module.exports.auth = {
       throw new Error('Invalid password')
     }
     return {
-      token: sign({ userId: user.id }, process.env.JWT_SECRET),
+      token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET),
       user,
     }
   },

@@ -1,23 +1,22 @@
-const { verify } = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
 
-const getUserId = context => {
-  const Authorization = context.req.get('authorization')
-  if (Authorization) {
-    const token = Authorization.replace('Bearer ', '')
-    const verifiedToken = verify(token, process.env.JWT_SECRET)
-    return verifiedToken && verifiedToken.userId
-  }
+export async function getUser(request, prisma) {
+  // get token from hearders
+  const authorization =
+    request.headers.authorization || request.headers.Authorization
+  if (!authorization) return
+  const token = authorization.replace('Bearer ', '')
+  // see if the token is legit
+  const verifiedToken = jwt.verify(token, process.env.JWT_SECRET)
+  const userId = verifiedToken && verifiedToken.userId
+  if (!userId) return
+  // get the authenticated user from the db
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  return user
 }
 
-const isValidEmail = email => {
-  // A technically accurate regex for email validation would be incredibly long.
-  // Instead we just want to check if the string is probably an email address to
-  // catch a few common typing errors. Real validation uses verification emails.
+export function isValidEmail(email) {
+  // Real validation sends a verification email. Just do a basic format check
   const mailFormatRegex = /^\S+@\S+\.\S+$/
   return email.match(mailFormatRegex)
-}
-
-module.exports = {
-  getUserId,
-  isValidEmail,
 }

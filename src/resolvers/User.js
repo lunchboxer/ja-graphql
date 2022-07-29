@@ -1,4 +1,4 @@
-module.exports.User = {
+export const User = {
   groups(root, _, context) {
     return context.prisma.user
       .findUnique({

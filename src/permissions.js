@@ -1,49 +1,38 @@
-const { rule, shield, or } = require('graphql-shield')
-const { getUserId } = require('./utils')
+import { shield, rule, or } from 'graphql-shield'
 
-// Rules
-
-const isAuthenticatedUser = rule()((root, parameters, context) => {
-  const userId = getUserId(context)
-  return Boolean(userId)
-})
-// this needs to be tested
-const isAdmin = rule()(async (root, parameters, context) => {
-  const userId = getUserId(context)
-  const adminUser = await context.prisma.user.findUnique({
-    where: { id: userId, role: 'admin' },
-  })
-  return !!adminUser
-})
-const isThisUser = rule()((root, parameters, context) => {
-  const userId = getUserId(context)
-  return userId === context.id
-})
 const noUsersExist = rule()(async (root, parameters, context) => {
   const users = await context.prisma.user.findFirst()
   return !users
 })
+const isAuthenticated = rule()(async (root, parameters, context) => {
+  return !!context.user
+})
+const isAdmin = rule()(async (root, parameters, context) => {
+  return context.user?.role === 'admin'
+})
+// const isThisUser = rule()(async (root, parameters, context) => {
+//   return context.user?.id === parameters.id
+// })
 
-// Permissions
-module.exports.permissions = shield(
+export const permissions = shield(
   {
     Query: {
-      me: isAuthenticatedUser,
+      me: isAuthenticated,
     },
     Mutation: {
       createUser: or(isAdmin, noUsersExist),
-      // deleteUser: isAdmin,
-      // updateUser: or(isThisUser, isAdmin),
-      // changePassword: or(isThisUser, isAdmin),
-      // createStudent: isAuthenticatedUser,
-      // updateStudent: isAuthenticatedUser,
-      // deleteStudent: isAuthenticatedUser,
+      //     deleteUser: isAdmin,
+      //     updateUser: or(isThisUser, isAdmin),
+      //     changePassword: or(isThisUser, isAdmin),
+      //     createStudent: isAuthenticated,
+      //     updateStudent: isAuthenticated,
+      //     deleteStudent: isAuthenticated,
     },
-    User: {
-      //  role: isAdmin,
-    },
+    // User: {
+    //   role: isAdmin,
+    // },
   },
   {
-    allowExternalErrors: true,
+    Allowexternalerrors: true,
   },
 )

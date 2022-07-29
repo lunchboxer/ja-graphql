@@ -1,12 +1,12 @@
-const { Mutation } = require('./Mutation')
-const { Query } = require('./Query')
-const { User } = require('./User')
-const { SchoolYear } = require('./SchoolYear')
-const { Group } = require('./Group')
-const { Student } = require('./Student')
-const { Guardian } = require('./Guardian')
+import { Mutation } from './Mutation/index.js'
+import { Query } from './Query.js'
+import { User } from './User.js'
+import { SchoolYear } from './SchoolYear.js'
+import { Group } from './Group.js'
+import { Student } from './Student.js'
+import { Guardian } from './Guardian.js'
 
-module.exports.resolvers = {
+export const resolvers = {
   Query,
   Mutation,
   User,

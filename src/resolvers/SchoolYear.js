@@ -1,4 +1,4 @@
-module.exports.SchoolYear = {
+export const SchoolYear = {
   groups(root, _, context) {
     return context.prisma.schoolYear
       .findUnique({

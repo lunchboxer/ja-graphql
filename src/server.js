@@ -1,69 +1,71 @@
-const { createServer } = require('node:http')
-const { ApolloServerPluginDrainHttpServer } = require('apollo-server-core')
-const { WebSocketServer } = require('ws')
-const { ApolloServer } = require('apollo-server-express')
-const { makeExecutableSchema } = require('@graphql-tools/schema')
-const express = require('express')
-const { useServer } = require('graphql-ws/lib/use/ws')
-const fs = require('node:fs')
-const path = require('node:path')
-const { resolvers } = require('./resolvers')
-const { createContext } = require('./context')
-const { applyMiddleware } = require('graphql-middleware')
-const { permissions } = require('./permissions')
+import express from 'express'
+import { applyMiddleware } from 'graphql-middleware'
+import {
+  getGraphQLParameters,
+  processRequest,
+  renderGraphiQL,
+  shouldRenderGraphiQL,
+  sendResult,
+} from 'graphql-helix'
 
-const typeDefs = fs
-  .readFileSync(path.join(__dirname, 'schema.graphql'), 'utf8')
-  .toString()
+import { makeExecutableSchema } from '@graphql-tools/schema'
+import { readFileSync } from 'node:fs'
+
+import { resolvers } from './resolvers/index.js'
+import { PrismaClient } from '@prisma/client'
+import { getUser } from './utils.js'
+import { permissions } from './permissions.js'
+
+export const prisma = new PrismaClient()
+
+const typeDefs = readFileSync(
+  new URL('schema.graphql', import.meta.url),
+  'utf8',
+).toString()
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
-
-const PORT = process.env.PORT || 4000
+const schemaWithPermissions = applyMiddleware(
+  schema,
+  permissions.generate(schema),
+)
 
 const app = express()
-const httpServer = createServer(app)
+app.use(express.json())
 
-async function start() {
-  /** Create WS Server */
-  const wsServer = new WebSocketServer({
-    server: httpServer,
-    path: '/graphql',
-  })
+app.use('/graphql', async (expressRequest, expressResult) => {
+  // Determine whether we should render GraphiQL instead of returning an API response
+  const request = {
+    body: expressRequest.body,
+    headers: expressRequest.headers,
+    method: expressRequest.method,
+    query: expressRequest.query,
+  }
+  if (shouldRenderGraphiQL(request)) {
+    expressResult.send(renderGraphiQL())
+  } else {
+    // Extract the Graphql parameters from the request
+    const { operationName, query, variables } = getGraphQLParameters(request)
 
-  /** hand-in created schema and have the WS Server start listening */
-  const serverCleanup = useServer(
-    {
-      schema,
-      context: createContext,
-    },
-    wsServer,
-  )
+    // Validate and execute the query
+    const result = await processRequest({
+      operationName,
+      query,
+      variables,
+      request,
+      schema: schemaWithPermissions,
+      contextFactory: async () => ({
+        request,
+        prisma,
+        user: await getUser(request, prisma),
+      }),
+    })
 
-  const server = new ApolloServer({
-    schema: applyMiddleware(schema, permissions),
-    // schema,
-    context: createContext,
-    plugins: [
-      ApolloServerPluginDrainHttpServer({ httpServer }),
-      {
-        async serverWillStart() {
-          return {
-            async drainServer() {
-              await serverCleanup.dispose()
-            },
-          }
-        },
-      },
-    ],
-  })
+    sendResult(result, expressResult)
+  }
+})
 
-  await server.start()
-  server.applyMiddleware({ app })
+const port = process.env.PORT || 4000
 
-  httpServer.listen(PORT, () => {
-    console.log('🚀 Server ready at http://localhost:4000/graphql')
-    console.log('⏰ Subscriptions ready at http://localhost:4000/graphql')
-  })
-}
-
-start()
+app.listen(port, () => {
+  console.log(`GraphQL server is running on port ${port}.`)
+})

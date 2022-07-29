@@ -1,14 +1,9 @@
-const { getUserId } = require('../utils')
-
-module.exports.Query = {
+export const Query = {
   me: async (_, parameters, context) => {
-    const id = getUserId(context)
-    const user = await context.prisma.user.findUnique({
-      where: {
-        id,
-      },
-    })
-    if (!user) throw new Error("Requested authenticated user doesn't exists.")
+    const { user } = context
+    if (!user) {
+      throw new Error("Requested authenticated user doesn't exists.")
+    }
     return user
   },
 

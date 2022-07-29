@@ -1,6 +1,6 @@
-const { checkOrder, checkConflicts } = require('../validation')
+import { checkOrder, checkConflicts } from '../validation.js'
 
-module.exports.schoolYear = {
+export const schoolYear = {
   createSchoolYear: async (_, { name, startDate, endDate }, context) => {
     await checkOrder(startDate, endDate, _, context)
     await checkConflicts(startDate, endDate, _, context)

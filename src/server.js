@@ -31,17 +31,17 @@ const schemaWithPermissions = applyMiddleware(
 
 const development = process.env.NODE_ENV === 'development'
 const app = fastify({
-  logger: {
-    transport: development
-      ? {
+  logger: development
+    ? {
+        transport: {
           target: 'pino-pretty',
           options: {
             translateTime: 'HH:MM:ss Z',
             ignore: 'pid,hostname',
           },
-        }
-      : undefined,
-  },
+        },
+      }
+    : undefined,
 })
 
 app.route({
@@ -82,5 +82,6 @@ app.route({
 })
 
 const port = process.env.PORT || 4000
+const host = process.env.HOST || 'localhost'
 
-app.listen({ port })
+app.listen({ port, host })

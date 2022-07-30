@@ -9,7 +9,7 @@
     "lint": "prettier --check --plugin-search-dir=. . && eslint --ignore-path .gitignore ."
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=14.0.0"
   },
   "prettier": {
     "semi": false,
@@ -28,7 +28,7 @@
     "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
-    "@graphql-eslint/eslint-plugin": "^3.10.6",
+    "@graphql-eslint/eslint-plugin": "^3.10.7",
     "eslint": "^8.20.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",

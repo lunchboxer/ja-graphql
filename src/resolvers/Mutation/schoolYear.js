@@ -1,34 +1,23 @@
 import { checkOrder, checkConflicts } from '../validation.js'
 
 export const schoolYear = {
-  createSchoolYear: async (_, { name, startDate, endDate }, context) => {
+  createSchoolYear: async (_, { input }, context) => {
+    const { name, startDate, endDate } = input
     await checkOrder(startDate, endDate, _, context)
     await checkConflicts(startDate, endDate, _, context)
     return context.prisma.schoolYear.create({
       data: { name, startDate, endDate },
     })
   },
-  updateSchoolYear: async (_, parameters, context) => {
-    await checkOrder(
-      parameters.startDate,
-      parameters.endDate,
-      parameters.id,
-      context,
-    )
-    await checkConflicts(
-      parameters.startDate,
-      parameters.endDate,
-      parameters.id,
-      context,
-    )
-    const { id, ...data } = parameters
-    // check that no conflicts exist
-    // check that dates are not in reverse order
+  updateSchoolYear: async (_, { input }, context) => {
+    const { id, startDate, endDate } = input
+    await checkOrder(startDate, endDate, id, context)
+    await checkConflicts(startDate, endDate, id, context)
     return context.prisma.schoolYear.update({
       where: {
         id,
       },
-      data,
+      data: { startDate, endDate },
     })
   },
   deleteSchoolYear: async (_, { id }, context) => {

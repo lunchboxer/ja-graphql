@@ -5,6 +5,7 @@ import { SchoolYear } from './SchoolYear.js'
 import { Group } from './Group.js'
 import { Student } from './Student.js'
 import { Guardian } from './Guardian.js'
+import { Role } from './Role.js'
 
 export const resolvers = {
   Query,
@@ -14,4 +15,5 @@ export const resolvers = {
   Student,
   Group,
   Guardian,
+  Role,
 }

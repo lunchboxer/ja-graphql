@@ -1,43 +1,43 @@
 scalar Date
 
 type AuthPayload {
-  token: String
+  token: String!
   user: User
 }
 
 type Mutation {
-  # createStudent(birthdate: String, languages: String, name: String): Student
-  # deleteStudent(id: ID!): Student
-  # updateStudent(
-  #   id: ID!
-  #   name: String
-  #   birthdate: String
-  #   languages: String
-  # ): Student
-  createUser(
-    username: String!
-    name: String
-    email: String
-    password: String!
-  ): AuthPayload
-  # deleteUser(id: ID!): User
+  createStudent(input: CreateStudentInput!): Student
+  deleteStudent(id: ID!): Student
+  updateStudent(input: UpdateStudentInput!): Student
+
   login(username: String!, password: String!): AuthPayload
-  # updateUser(email: String, id: ID!, name: String): User
-  # changePassword(newPassword: String!, oldPassword: String!): User
+  createInitialAdmin(input: CreateInitialAdminInput!): AuthPayload
+  createUser(input: CreateUserInput!): User
+  updateUser(input: UpdateUserInput!): User
+  deleteUser(id: ID!): User
+  changePassword(id: ID!, newPassword: String!, oldPassword: String!): User
+  assignRole(userId: ID!, role: String!): User
+  unassignRole(userId: ID!, role: String!): User
+
+  createRole(name: String!): Role
+  renameRole(id: ID!, name: String!): Role
+  deleteRole(id: ID!): Role
+
   updateSchool(name: String, address: String): School
-  createSchoolYear(
-    name: String!
-    startDate: String!
-    endDate: String!
-  ): SchoolYear
-  updateSchoolYear(
-    id: ID!
-    name: String!
-    startDate: String!
-    endDate: String!
-  ): SchoolYear
+
+  createSchoolYear(input: CreateSchoolYearInput!): SchoolYear
+  updateSchoolYear(input: UpdateSchoolYearInput!): SchoolYear
   deleteSchoolYear(id: ID!): SchoolYear
+
   createGroup(name: String!, grade: String!, schoolYearId: ID!): Group
+  updateGroup(input: UpdateGroupInput!): Group
+  deleteGroup(id: ID!): Group
+
+  connectGuardian(guardianId: ID!, studentId: ID!): Guardian
+  disconnectGuardian(guardianId: ID!, studentId: ID!): Guardian
+  createGuardian(input: CreateGuardianInput!): Guardian
+  editGuardian(input: EditGuardianInput!): Guardian
+  deleteGuardian(id: ID!): Guardian
 }
 
 type Query {
@@ -50,30 +50,34 @@ type Query {
   guardians: [Guardian]
   user(id: ID!): User
   users: [User]
+  userCount: Int
+  role(id: ID, name: String): Role
+  roles: [Role]
   schoolYear(id: ID): SchoolYear
   schoolYears: [SchoolYear]
   school: School
 }
 
 type Student {
-  id: ID
-  commonname: String
+  id: ID!
+  commonName: String!
   birthdate: String
   languages: String
-  idname: String
-  username: String
-  chinesename: String
-  englishname: String
+  idName: String
+  chineseName: String
+  pinyinName: String
+  englishName: String
   gender: String
   nationality: String
   groups: [Group!]!
   gaurdians: [Guardian!]!
+  user: User
   createdAt: Date
   updatedAt: Date
 }
 
 type Guardian {
-  id: String
+  id: ID!
   relationship: String
   name: String
   phone: String
@@ -85,21 +89,29 @@ type Guardian {
 }
 
 type User {
-  id: ID
-  username: String
+  id: ID!
+  username: String!
   email: String
   isVerified: Boolean
-  role: String
+  roles: [String!]!
   name: String
   groups: [Group!]!
+  createdAt: Date
+  updatedAt: Date
+  studentId: ID
+}
+
+type Role {
+  id: ID!
+  name: String!
+  users: [User!]!
   createdAt: Date
   updatedAt: Date
 }
 
 type SchoolYear {
-  id: ID
+  id: ID!
   name: String
-  # YYYY-MM-DD
   startDate: String
   endDate: String
   groups: [Group!]!
@@ -108,7 +120,7 @@ type SchoolYear {
 }
 
 type Group {
-  id: ID
+  id: ID!
   name: String
   grade: String
   teachers: [User!]!
@@ -119,8 +131,88 @@ type Group {
 }
 
 type School {
-  name: String
+  id: ID!
+  name: String!
   address: String
   createdAt: Date
   updatedAt: Date
+}
+
+input CreateStudentInput {
+  commonName: String!
+  groupId: ID!
+}
+
+input UpdateStudentInput {
+  id: ID!
+  commonName: String!
+  birthdate: String
+  languages: String
+  idName: String
+  chineseName: String
+  pinyinName: String
+  englishName: String
+  gender: String
+  nationality: String
+  groupId: ID
+}
+
+input CreateUserInput {
+  username: String!
+  password: String!
+  role: String!
+  email: String
+  name: String
+}
+
+input CreateInitialAdminInput {
+  username: String!
+  name: String
+  email: String
+  password: String!
+}
+
+input UpdateUserInput {
+  id: ID!
+  username: String!
+  role: String
+  email: String
+  name: String
+}
+
+input CreateSchoolYearInput {
+  name: String!
+  startDate: String!
+  endDate: String!
+}
+
+input UpdateSchoolYearInput {
+  id: ID!
+  name: String!
+  startDate: String!
+  endDate: String!
+}
+input CreateGuardianInput {
+  relationship: String!
+  name: String!
+  phone: String
+  nationality: String
+  email: String
+  studentId: ID!
+}
+
+input EditGuardianInput {
+  id: ID!
+  relationship: String!
+  name: String!
+  phone: String
+  nationality: String
+  email: String
+}
+
+input UpdateGroupInput {
+  id: ID!
+  name: String!
+  grade: String!
+  schoolYearId: ID!
 }

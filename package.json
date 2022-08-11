@@ -19,13 +19,16 @@
   },
   "dependencies": {
     "@graphql-tools/schema": "^8.5.1",
-    "@prisma/client": "^4.1.1",
+    "@prisma/client": "^4.2.1",
+    "fast-jwt": "^1.7.0",
     "fastify": "^4.3.0",
     "graphql": "^15.8.0",
     "graphql-helix": "^1.13.0",
     "graphql-middleware": "^6.1.32",
+    "graphql-playground-html": "^1.6.30",
     "graphql-shield": "^7.5.0",
-    "jsonwebtoken": "^8.5.1"
+    "pinyin-pro": "^3.11.0",
+    "tiny-lru": "^8.0.2"
   },
   "devDependencies": {
     "@graphql-eslint/eslint-plugin": "^3.10.7",
@@ -39,7 +42,7 @@
     "nodemon": "^2.0.19",
     "pino-pretty": "^8.1.0",
     "prettier": "^2.7.1",
-    "prisma": "^4.1.1"
+    "prisma": "^4.2.1"
   },
   "type": "module",
   "prisma": {

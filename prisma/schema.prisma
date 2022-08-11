@@ -12,11 +12,11 @@ datasource db {
 
 model User {
   id         String   @id @default(cuid())
-  email      String   @unique
+  email      String?  @unique
   username   String   @unique
   name       String?
   password   String
-  role       String   @default("teacher")
+  roles      Role[]
   isVerified Boolean  @default(false)
   groups     Group[]
   createdAt  DateTime @default(now())
@@ -24,22 +24,29 @@ model User {
   student    Student?
 }
 
+model Role {
+  id        String   @id @default(cuid())
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Student {
   id          String     @id @default(cuid())
   commonname  String // unique in current group, resolver enforced
-  password    String?
-  idname      String?
-  username    String?    @unique
-  chinesename String?
-  englishname String?
   birthdate   String?
   languages   String?
-  gender      String?
+  idname      String?
+  chinesename String?
+  pinyinName  String? // use this to override auto-generated
+  englishname String?
+  gender      String? // M/F
   nationality String?
   groups      Group[]
+  guardians   Guardian[]
   user        User?      @relation(fields: [userId], references: [id])
   userId      String?    @unique
-  guardians   Guardian[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 }
@@ -66,11 +73,13 @@ model Group {
   schoolYearId String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@unique([name, schoolYearId])
 }
 
 model SchoolYear {
   id        String   @id @default(cuid())
-  name      String
+  name      String   @unique
   startDate String
   endDate   String
   groups    Group[]

@@ -15,11 +15,27 @@ export const Query = {
     })
   },
 
-  users: async (_, parameters, context) => {
+  users: (_, parameters, context) => {
     return context.prisma.user.findMany()
   },
 
-  school: async (_, parameters, context) => {
+  userCount: (_, parameters, context) => {
+    return context.prisma.user.aggregate({ _count: { id: true } })
+  },
+
+  role: (_, { id, name }, context) => {
+    return context.prisma.role.findFirst({
+      where: {
+        OR: [{ name }, { id }],
+      },
+    })
+  },
+
+  roles: (_, parameters, context) => {
+    return context.prisma.role.findMany()
+  },
+
+  school: (_, parameters, context) => {
     // Only one record is supported
     return context.prisma.school.findUnique({ where: { id: 1 } })
   },

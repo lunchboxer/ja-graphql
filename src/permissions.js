@@ -4,35 +4,36 @@ const noUsersExist = rule()(async (root, parameters, context) => {
   const users = await context.prisma.user.findFirst()
   return !users
 })
-const isAuthenticated = rule()(async (root, parameters, context) => {
+const isAuthenticated = rule()(async (_, parameters, context) => {
   return !!context.user
 })
 const isAdmin = rule()(async (root, parameters, context) => {
-  return context.user?.role === 'admin'
+  return context.user?.roles?.includes('admin')
 })
-// const isThisUser = rule()(async (root, parameters, context) => {
-//   return context.user?.id === parameters.id
-// })
+const isThisUser = rule()(async (root, parameters, context) => {
+  return context.user?.id === parameters.id
+})
 
 export const permissions = shield(
   {
     Query: {
       me: isAuthenticated,
+      users: isAdmin,
+      user: isAdmin,
     },
     Mutation: {
-      createUser: or(isAdmin, noUsersExist),
-      //     deleteUser: isAdmin,
-      //     updateUser: or(isThisUser, isAdmin),
-      //     changePassword: or(isThisUser, isAdmin),
+      createInitialAdmin: or(isAdmin, noUsersExist),
+      createUser: isAdmin,
+      deleteUser: isAdmin,
+      updateUser: or(isThisUser, isAdmin),
+      changePassword: or(isThisUser, isAdmin),
       //     createStudent: isAuthenticated,
       //     updateStudent: isAuthenticated,
       //     deleteStudent: isAuthenticated,
     },
-    // User: {
-    //   role: isAdmin,
-    // },
   },
   {
     Allowexternalerrors: true,
+    fallbackError: 'Not authorized!',
   },
 )

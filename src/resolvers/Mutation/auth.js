@@ -1,15 +1,18 @@
 import { scryptSync, randomBytes } from 'node:crypto'
-import jwt from 'jsonwebtoken'
+import { createSigner } from 'fast-jwt'
 import { isValidEmail } from '../../utils.js'
 
-const encryptPassword = (password, salt) => {
+const sign = createSigner({ key: process.env.JWT_SECRET })
+
+function encryptPassword(password, salt) {
   return scryptSync(password, salt, 32).toString('hex')
 }
-const hashPassword = password => {
+function hashPassword(password) {
   const salt = randomBytes(16).toString('hex')
   return encryptPassword(password, salt) + salt
 }
-const passwordMatches = (password, hash) => {
+
+function passwordMatches(password, hash) {
   const salt = hash.slice(64)
   const originalPassHash = hash.slice(0, 64)
   const currentPassHash = encryptPassword(password, salt)
@@ -17,19 +20,89 @@ const passwordMatches = (password, hash) => {
 }
 
 export const auth = {
-  createUser: async (_, parameters, context) => {
+  createInitialAdmin: async (_, { input }, context) => {
+    if (input.email && !isValidEmail(input.email)) {
+      throw new Error('email address not valid')
+    }
+    const hashedPassword = hashPassword(input.password)
+    const usernameTaken = await context.prisma.user.findFirst({
+      where: { username: input.username },
+    })
+    if (usernameTaken) throw new Error('Username already exists')
+
+    const user = await context.prisma.user.create({
+      data: { ...input, password: hashedPassword },
+      roles: {
+        connectOrCreate: {
+          where: {
+            name: 'admin',
+          },
+          create: {
+            name: 'admin',
+          },
+        },
+      },
+    })
+    return {
+      token: sign({ userId: user.id }),
+      user,
+    }
+  },
+
+  createUser: async (_, { input }, context) => {
+    const { role, password, ...parameters } = input
     if (parameters.email && !isValidEmail(parameters.email)) {
       throw new Error('email address not valid')
     }
-    // const hashedPassword = await hash(parameters.password, 10)
     const hashedPassword = hashPassword(parameters.password)
-    const user = await context.prisma.user.create({
-      data: { ...parameters, password: hashedPassword },
+    const usernameTaken = await context.prisma.user.findFirst({
+      where: { username: parameters.username },
     })
-    return {
-      token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET),
-      user,
+    if (usernameTaken) throw new Error('Username already exists')
+
+    return context.prisma.user.create({
+      data: { ...parameters, password: hashedPassword },
+      roles: {
+        connectOrCreate: {
+          where: {
+            name: role,
+          },
+          create: {
+            name: role,
+          },
+        },
+      },
+    })
+  },
+
+  updateUser: async (_, { input }, { prisma }) => {
+    const { id, role, ...data } = input
+    return prisma.user.update({
+      where: { id },
+      data,
+      roles: {
+        connectOrCreate: {
+          where: {
+            name: role,
+          },
+          create: {
+            name: role,
+          },
+        },
+      },
+    })
+  },
+
+  changePassword: async (_, { id, newPassword, oldPassword }, context) => {
+    const user = await context.prisma.user.findUnique({ where: { id } })
+    if (!passwordMatches(oldPassword, user.password)) {
+      throw new Error('Invalid password')
     }
+    const hashedPassword = hashPassword(newPassword)
+    return context.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
+    })
   },
 
   login: async (_, { username, password }, context) => {
@@ -45,8 +118,31 @@ export const auth = {
       throw new Error('Invalid password')
     }
     return {
-      token: jwt.sign({ userId: user.id }, process.env.JWT_SECRET),
+      token: sign({ userId: user.id }),
       user,
     }
   },
+
+  deleteUser: (_, { id }, { prisma }) => prisma.user.delete({ where: id }),
+
+  assignRole: (_, { userId, role }, { prisma }) =>
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        roles: {
+          connectOrCreate: {
+            create: { name: role },
+            where: { name: role },
+          },
+        },
+      },
+    }),
+
+  unassignRole: (_, { userId, role }, { prisma }) =>
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        roles: { disconnect: { name: role } },
+      },
+    }),
 }

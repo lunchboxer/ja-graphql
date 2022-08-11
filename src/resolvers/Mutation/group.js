@@ -1,7 +1,17 @@
 export const group = {
-  createGroup: async (_, parameters, context) => {
-    return context.prisma.group.create({
-      data: parameters,
-    })
+  createGroup: (_, { name, grade, schoolYearId }, { prisma }) =>
+    prisma.group.create({
+      data: { name, grade },
+      schoolYear: {
+        connect: { id: schoolYearId },
+      },
+    }),
+
+  updateGroup: (_, { input }, { prisma }) => {
+    const { id, ...data } = input
+    prisma.group.update({ where: { id }, data })
   },
+
+  deleteGroup: (_, { id }, { prisma }) =>
+    prisma.group.delete({ where: { id } }),
 }

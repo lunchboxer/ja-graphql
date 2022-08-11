@@ -1,5 +1,4 @@
 export const Guardian = {
-  students({ id }, _, context) {
-    return context.prisma.guardian.findUnique({ where: { id } }).students()
-  },
+  students: ({ id }, _, { prisma }) =>
+    prisma.guardian.findUnique({ where: { id } }).students(),
 }
